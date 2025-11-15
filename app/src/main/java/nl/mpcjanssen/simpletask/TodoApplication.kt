@@ -187,6 +187,11 @@ class TodoApplication : Application() {
     }
 
     fun switchTodoFile(newTodo: File) {
+        if (config.useSaf) {
+            Log.i(TAG, "SAF mode active; ignoring legacy file switch")
+            showToastLong(app, "Use the folder picker to change the todo location")
+            return
+        }
         if (config.changesPending) {
             // Don't switch files when there are pending changes.
             // This will lead to data corruption
@@ -256,19 +261,7 @@ class TodoApplication : Application() {
     }
 
     fun browseForNewFile(act: Activity) {
-        val fileStore = FileStore
-        FileDialog.browseForNewFile(
-            act,
-            fileStore,
-            // config.todoFile.parentFile ?: File("/"),
-            config.todoFile.parentFile ?: Environment.getExternalStorageDirectory(),
-            object : FileDialog.FileSelectedListener {
-                override fun fileSelected(file: File) {
-                    switchTodoFile(file)
-                }
-            },
-            config.showTxtOnly
-        )
+        startLogin(act)
     }
 
     private fun createNotificationChannel() {

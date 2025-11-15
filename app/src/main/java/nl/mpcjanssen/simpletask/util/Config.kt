@@ -1,6 +1,7 @@
 package nl.mpcjanssen.simpletask.util
 
 import android.util.Log
+import android.net.Uri
 import me.smichel.android.KPreferences.Preferences
 import nl.mpcjanssen.simpletask.*
 import nl.mpcjanssen.simpletask.remote.FileStore
@@ -187,6 +188,39 @@ class Config(app: TodoApplication) : Preferences(app) {
             val filename = if (FileStore.isEncrypted) "done.txt.jenc" else "done.txt"
             return File(todoFile.parentFile, filename)
         }
+
+    // Storage Access Framework (SAF) configuration
+    private val SAF_TREE_URI_KEY = "saf_tree_uri"
+    private val TODO_FILENAME_KEY = "todo_filename"
+    private val DONE_FILENAME_KEY = "done_filename"
+
+    var safTreeUriString: String?
+        get() = prefs.getString(SAF_TREE_URI_KEY, null)
+        set(value) {
+            if (value == null) {
+                prefs.edit().remove(SAF_TREE_URI_KEY).apply()
+            } else {
+                prefs.edit().putString(SAF_TREE_URI_KEY, value).apply()
+            }
+        }
+
+    val safTreeUri: Uri?
+        get() = safTreeUriString?.let { Uri.parse(it) }
+
+    var todoFilename: String
+        get() = prefs.getString(TODO_FILENAME_KEY, "todo.txt") ?: "todo.txt"
+        set(value) {
+            prefs.edit().putString(TODO_FILENAME_KEY, value).apply()
+        }
+
+    var doneFilename: String
+        get() = prefs.getString(DONE_FILENAME_KEY, "done.txt") ?: "done.txt"
+        set(value) {
+            prefs.edit().putString(DONE_FILENAME_KEY, value).apply()
+        }
+
+    val useSaf: Boolean
+        get() = safTreeUri != null
 
     fun clearCache() {
         cachedContents = null

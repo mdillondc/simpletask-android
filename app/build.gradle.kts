@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.luaj.jse)
     implementation(libs.material)
+    implementation("androidx.documentfile:documentfile:1.0.1")
 
     annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)

@@ -73,44 +73,38 @@ class LoginScreen : ThemedNoActionBarActivity() {
         }
     }
 
-    internal fun continueLogin() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
-            val intent = Intent()
-            intent.action = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-            val uri: Uri = Uri.fromParts("package", this.packageName, null)
-            intent.setData(uri)
-            startActivityForResult(intent, REQUEST_FULL_PERMISSION)
-        } else {
-            finishLogin()
-        }
-    }
+// SAF-only: legacy continueLogin removed
 
     internal fun startLogin() {
-        val permissions = buildList {
-            add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            if (Build.VERSION.SDK_INT >= 33) {
-                add(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }.toTypedArray()
-        ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSIONS)
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                    Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+            )
+        }
+        startActivityForResult(intent, REQUEST_PICK_FOLDER)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
-        when (requestCode) {
-            REQUEST_PERMISSIONS -> continueLogin()
-            REQUEST_FULL_PERMISSION -> finishLogin()
+        if (requestCode == REQUEST_PICK_FOLDER && resultCode == android.app.Activity.RESULT_OK) {
+            val uri: Uri? = data?.data
+            if (uri != null) {
+                val takeFlags = (data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION))
+                contentResolver.takePersistableUriPermission(uri, takeFlags)
+                TodoApplication.config.safTreeUriString = uri.toString()
+                finishLogin()
+                return
+            }
         }
+        showToastLong(this, "No folder selected")
     }
 
     companion object {
-        private const val REQUEST_PERMISSIONS = 1
-        private const val REQUEST_FULL_PERMISSION = 2
+        private const val REQUEST_PICK_FOLDER = 100
         internal val TAG = LoginScreen::class.java.simpleName
     }
 }
