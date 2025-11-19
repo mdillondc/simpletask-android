@@ -1,3 +1,13 @@
+# GOAL OF THIS FORK
+
+- Ensure Simpletask continues to work on modern Android.
+  - Tested on Android 16 / OneUI 8.
+- I won't be releasing APKs.
+  - You have to open the project in Android Studio and build it yourself. It's easy.
+  - I will do my best to ensure the code will work on modern Android.
+
+// End of goal.
+
 Simpletask (fork)
 =================
 
